@@ -2,6 +2,13 @@
 import streamlit as st
 #from snowflake.snowpark.context import get_active_session
 from snowflake.snowpark.functions import col
+import requests
+
+#Import fruityvice_response data
+fruityvice_response = requests.get("https://fruityvice.com/api/fruit/watermelon")
+st.text(fruityvice_response)
+
+
 
 # Write directly to the app
 st.title(":cup_with_straw: Customize Your Smoothie! :cup_with_straw:")
@@ -11,23 +18,26 @@ st.write(
     """
 )
 
-
+#  Take customer name on the app
 name_on_order = st.text_input("Name on Smoothie")
 st.write("The name on your Smoothie will be: ", name_on_order)
 
-
+# connect to snowflake
 cnx = st.connection("snowflake")
 session = cnx.session()
 
+# read fruit data
 my_dataframe = session.table("smoothies.public.fruit_options").select(col('FRUIT_NAME'))
 #st.dataframe(data=my_dataframe, use_container_width=True)
 
+# select 5 ingedients
 ingredients_list = st.multiselect(
     "Choose upto five ingedients",
     my_dataframe,
     max_selections=6
 )
 
+#if ingredients selected and submited then insert orders to database  with success message
 if ingredients_list:
     ingredients_string=''
     for fruit_chosen in ingredients_list:
